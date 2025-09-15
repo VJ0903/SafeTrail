@@ -78,7 +78,23 @@ const DigitalId = () => {
     }
   };
 
-  if (!user || isLoading) {
+  // Demo: Create a demo user if none exists
+  if (!user && !isLoading) {
+    const userData = localStorage.getItem("currentUser");
+    if (!userData) {
+      const demoUser = {
+        id: "demo-user-123",
+        touristId: "TID-2024-NE-123456789",
+        fullName: "Demo User",
+        profileCompleted: true
+      };
+      setUser(demoUser);
+      localStorage.setItem("currentUser", JSON.stringify(demoUser));
+      return <div className="min-h-screen bg-background flex items-center justify-center">Setting up demo...</div>;
+    }
+  }
+
+  if (isLoading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>;
   }
 

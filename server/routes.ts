@@ -145,14 +145,47 @@ router.post("/api/profile/:touristId", async (req, res) => {
 router.get("/api/digital-id/:touristId", async (req, res) => {
   try {
     const { touristId } = req.params;
-    const digitalId = await storage.getDigitalId(touristId);
+    let digitalId = await storage.getDigitalId(touristId);
+    const profile = await storage.getTouristProfile(touristId);
     
-    if (!digitalId) {
-      return res.status(404).json({ error: "Digital ID not found" });
+    if (!profile) {
+      return res.status(404).json({ error: "Profile not found" });
     }
     
-    res.json(digitalId);
+    // Auto-create digital ID if it doesn't exist but profile is completed (demo flow)
+    if (!digitalId && profile.profileCompleted) {
+      const issueDate = new Date().toISOString().split('T')[0];
+      const validUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const blockchainHash = `0x${Math.random().toString(16).substring(2)}`.padEnd(66, '0');
+      
+      digitalId = await storage.createDigitalId({
+        touristProfileId: profile.id,
+        touristId,
+        issueDate,
+        validUntil,
+        blockchainHash,
+        triggers: [
+          { type: "Profile Completion", source: "Safe Trail Platform", date: issueDate },
+          { type: "Identity Verification", source: "North East Tourism Board", date: issueDate },
+        ],
+      });
+    }
+    
+    if (!digitalId) {
+      return res.status(404).json({ error: "Digital ID not found. Please complete your profile first." });
+    }
+    
+    // Return digital ID with profile data (as expected by frontend)
+    res.json({
+      ...digitalId,
+      profile: {
+        fullName: profile.fullName,
+        nationality: profile.nationality || "Indian",
+        travelerType: profile.travelerType || "Domestic",
+      }
+    });
   } catch (error) {
+    console.error("Digital ID error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
