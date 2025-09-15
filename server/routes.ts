@@ -12,20 +12,34 @@ import {
 
 const router = express.Router();
 
-// User routes
+// Tourist Profile Login (main authentication method)
 router.post("/api/login", async (req, res) => {
   try {
-    const { username, password } = insertUserSchema.parse(req.body);
+    const loginSchema = z.object({
+      touristId: z.string(),
+      fullName: z.string(),
+    });
     
-    const user = await storage.getUserByUsername(username);
+    const { touristId, fullName } = loginSchema.parse(req.body);
     
-    if (!user || user.password !== password) {
+    let profile = await storage.getTouristProfile(touristId);
+    
+    // If profile doesn't exist, create a new one for first-time users
+    if (!profile) {
+      profile = await storage.createTouristProfile({
+        touristId,
+        fullName,
+        accommodation: "", // Will be updated in profile completion
+        profileCompleted: false,
+      });
+    } else if (profile.fullName.toLowerCase() !== fullName.toLowerCase()) {
+      // Verify the name matches for existing profiles
       return res.status(401).json({ error: "Invalid credentials" });
     }
     
-    // In a real app, you'd use proper password hashing and session management
-    res.json({ user: { id: user.id, username: user.username } });
+    res.json({ profile });
   } catch (error) {
+    console.error("Login error:", error);
     res.status(400).json({ error: "Invalid request data" });
   }
 });
