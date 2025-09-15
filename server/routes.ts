@@ -87,18 +87,56 @@ router.post("/api/profile", async (req, res) => {
   }
 });
 
+// Support both PUT and POST for profile updates (demo flexibility)
 router.put("/api/profile/:touristId", async (req, res) => {
   try {
     const { touristId } = req.params;
-    const existingProfile = await storage.getTouristProfile(touristId);
+    let existingProfile = await storage.getTouristProfile(touristId);
     
     if (!existingProfile) {
-      return res.status(404).json({ error: "Profile not found" });
+      // For demo: create profile if it doesn't exist
+      existingProfile = await storage.createTouristProfile({
+        touristId,
+        fullName: req.body.fullName || "Demo User",
+        accommodation: req.body.accommodation || "",
+        profileCompleted: false,
+      });
     }
     
-    const updatedProfile = await storage.updateTouristProfile(existingProfile.id, req.body);
+    const updatedProfile = await storage.updateTouristProfile(existingProfile.id, {
+      ...req.body,
+      profileCompleted: true, // Auto-complete for demo
+    });
     res.json(updatedProfile);
   } catch (error) {
+    console.error("Profile update error:", error);
+    res.status(400).json({ error: "Invalid request data" });
+  }
+});
+
+// Also support POST for profile updates (frontend compatibility)
+router.post("/api/profile/:touristId", async (req, res) => {
+  try {
+    const { touristId } = req.params;
+    let existingProfile = await storage.getTouristProfile(touristId);
+    
+    if (!existingProfile) {
+      // For demo: create profile if it doesn't exist
+      existingProfile = await storage.createTouristProfile({
+        touristId,
+        fullName: req.body.fullName || "Demo User",
+        accommodation: req.body.accommodation || "",
+        profileCompleted: false,
+      });
+    }
+    
+    const updatedProfile = await storage.updateTouristProfile(existingProfile.id, {
+      ...req.body,
+      profileCompleted: true, // Auto-complete for demo
+    });
+    res.json(updatedProfile);
+  } catch (error) {
+    console.error("Profile update error:", error);
     res.status(400).json({ error: "Invalid request data" });
   }
 });

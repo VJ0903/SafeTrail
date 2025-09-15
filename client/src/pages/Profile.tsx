@@ -111,11 +111,11 @@ const Profile = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!profile.emergencyContact1?.name || !profile.emergencyContact1?.phone ||
-        !profile.emergencyContact2?.name || !profile.emergencyContact2?.phone) {
+    // Demo: Relaxed validation - just need at least one emergency contact
+    if (!profile.emergencyContact1?.name || !profile.emergencyContact1?.phone) {
       toast({
-        title: "❌ Missing emergency contacts",
-        description: "Please provide at least 2 emergency contacts.",
+        title: "❌ Missing emergency contact",
+        description: "Please provide at least one emergency contact.",
         variant: "destructive",
       });
       return;
@@ -124,7 +124,20 @@ const Profile = () => {
     updateProfileMutation.mutate(profile);
   };
 
-  if (!user || isLoading) {
+  // Demo: Create a demo user if none exists
+  if (!user && !isLoading) {
+    const demoUser = {
+      id: "demo-user-123",
+      touristId: "TID-2024-NE-123456789",
+      fullName: "Demo User",
+      profileCompleted: false
+    };
+    setUser(demoUser);
+    localStorage.setItem("currentUser", JSON.stringify(demoUser));
+    return <div className="min-h-screen bg-background flex items-center justify-center">Setting up demo...</div>;
+  }
+
+  if (isLoading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>;
   }
 
