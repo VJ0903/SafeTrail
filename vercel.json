@@ -1,11 +1,12 @@
 {
   "version": 2,
+  "buildCommand": "vite build",
   "builds": [
     {
-      "src": "client/package.json",
+      "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "../dist"
+        "distDir": "dist/public"
       }
     }
   ],
@@ -15,8 +16,11 @@
       "dest": "/api/$1"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/dist/$1"
+      "dest": "/index.html"
     }
   ],
   "functions": {
