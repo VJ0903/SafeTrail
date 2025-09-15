@@ -1,7 +1,17 @@
 node_modules
 dist
 .DS_Store
-server/public
 vite.config.ts.*
 *.tar.gz
 .env
+
+# Vercel
+.vercel
+*.log
+
+# Build outputs
+build/
+.next/
+
+# Replit specific (if any remain)
+.replit*
